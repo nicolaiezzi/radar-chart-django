@@ -1,0 +1,11 @@
+<h2>Profils Radar</h2>
+<a href="{% url 'creer_profil' %}">➕ Créer un nouveau</a>
+<ul>
+  {% for profil in profils %}
+    <li>
+      {{ profil.nom }}
+      <a href="{% url 'radar_interactif' profil.pk %}">📊 Voir radar</a>
+      <a href="{% url 'supprimer_profil' profil.pk %}">🗑️ Supprimer</a>
+    </li>
+  {% endfor %}
+</ul>

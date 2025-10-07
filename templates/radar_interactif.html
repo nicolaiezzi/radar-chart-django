@@ -1,0 +1,71 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+
+<h2>{{ profil.nom }}</h2>
+
+<div id="sliders">
+  {% for i in range(1, 11) %}
+    <label>Paramètre {{ i }}:</label>
+    <input type="range"
+           min="1" max="10"
+           value="{{ profil.parametres|get_item:'param_'|add:i }}"
+           oninput="updateValue(this, 'param_{{ i }}')">
+    <span id="val_{{ i }}">{{ profil.parametres|get_item:'param_'|add:i }}</span><br>
+  {% endfor %}
+</div>
+
+<canvas id="radarChart" width="400" height="400"></canvas>
+
+<script>
+  const labels = [
+    {% for i in range(1, 11) %}
+      "Paramètre {{ i }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  const dataValues = [
+    {% for i in range(1, 11) %}
+      {{ profil.parametres|get_item:'param_'|add:i }}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  const radarChart = new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '{{ profil.nom }}',
+        data: dataValues,
+        fill: true,
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        pointBackgroundColor: 'rgba(54, 162, 235, 1)'
+      }]
+    },
+    options: {
+      scales: {
+        r: {
+          min: 0,
+          max: 10,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  });
+
+  function updateValue(slider, param) {
+    const val = slider.value;
+    document.getElementById(`val_${param.split('_')[1]}`).textContent = val;
+    radarChart.data.datasets[0].data[parseInt(param.split('_')[1]) - 1] = parseInt(val);
+    radarChart.update();
+
+    fetch("{% url 'maj_parametre' profil.pk %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: `param=${param}&valeur=${val}`
+    });
+  }
+</script>
