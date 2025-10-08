@@ -1,1 +1,1 @@
-web: gunicorn config.wsgi
+web: gunicorn radar_project.wsgi
